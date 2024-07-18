@@ -452,16 +452,26 @@ int ObAggregatedStore::fill_count(const int64_t row_count)
     ret = OB_INVALID_ARGUMENT;
     STORAGE_LOG(WARN, "Invalid argument to fill count", K(ret), K(row_count));
   } else {
-    //LOG_DEBUG("debug to fill row count", K(ret), K(row_count));
-    for (int64_t i = 0; OB_SUCC(ret) && i < agg_row_.get_agg_count(); ++i) {
-      ObAggCell *cell = agg_row_.at(i);
-      if (OB_FAIL(cell->eval_count(row_count))) {
-        LOG_WARN("Failed to eval count", K(ret), K(i), K(row_count), K(*cell));
-      }
-    }
+    LOG_DEBUG("debug to fill row count", K(ret), K(row_count));
+    // for (int64_t i = 0; OB_SUCC(ret) && i < agg_row_.get_agg_count(); ++i) {
+    //   ObAggCell *cell = agg_row_.at(i);
+    //   if (OB_FAIL(cell->eval_count(row_count))) {
+    //     LOG_WARN("Failed to eval count", K(ret), K(i), K(row_count), K(*cell));
+    //   }
+    // }
+// your code here
+   for (int64_t i = 0; OB_SUCC(ret) && i < agg_row_.get_agg_count(); ++i) {
+ ObCountAggCell *cell = (ObCountAggCell *)agg_row_.at(i);
+ if (OB_FAIL(cell->eval(row_buf_.storage_datums_[cell->get_col_offset()], row_count))) {
+ LOG_WARN("Failed to eval agg count cell", K(ret), K(i), K(*cell));
+ }
+ }
+ LOG_DEBUG("debug to fill row count", K(ret), K(row_count));
   }
   return ret;
 }
+
+
 
 int ObAggregatedStore::collect_aggregated_row(blocksstable::ObDatumRow *&row)
 {
